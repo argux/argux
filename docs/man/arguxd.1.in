@@ -1,0 +1,32 @@
+.\" Argux configuration man-page
+.TH ARGUXD 1 "October 2014" @PACKAGE_VERSION@ "Argux Documentation"
+.SH NAME
+arguxd \- Argux daemon process
+.SH SYNOPSIS
+arguxd [
+.IR options
+]
+.SH DESCRIPTION
+\...
+.SH OPTIONS
+.TP 3
+.B
+-h  --help
+Display command usage information
+.TP 3
+.B
+--init-db
+Initialize Database according to schema specified in
+.B
+${prefix}/share/argux/schema.
+This currently only works for the SQLITE backend.
+.TP 3
+.B
+-v --verbose
+Run in verbose mode
+.TP 3
+.B
+-V --version
+Show version information
+.SH BUGS
+It doesn't work yet.

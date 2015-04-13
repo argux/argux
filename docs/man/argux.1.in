@@ -1,0 +1,147 @@
+.\" Argux configuration man-page
+.TH ARGUX 1 "April 2015" @PACKAGE_VERSION@ "Argux Documentation"
+.SH NAME
+argux \- Argux Command-line utility
+.SH SYNOPSIS
+argux
+[
+.IR options
+]
+.br
+.SH DESCRIPTION
+The argux command-line utility provides an interface to the arguxd
+daemon process. It can be used to query, and configure the daemon.
+.SH OPTIONS
+.
+The
+.B argux
+command line utility understands the following command line options.
+.TP 3
+.B
+-h  --help
+Display command usage information
+.TP 3
+.B
+-v  --verbose
+Run in verbose mode
+.TP 3
+.B
+-V  --version
+Show version information
+.TP 3
+.B
+-i  --interactive
+Interactive Menu
+.TP 3
+.B
+-s  --silent
+Silent mode
+.SH QUERY LANGUAGE
+.TP 3
+.B
+connect user[:password][@host[:port]]
+Connect to a server, if ommitted, host defaults to localhost,
+port defaults to 1234.
+.TP 3
+.B
+disconnect
+Disconnect from a server
+.TP 3
+.B
+exit
+Close the shell.
+.\"
+.TP 3
+.B
+register <type>
+.IP
+.I
+host
+.IP
+.I
+ns
+.IP
+.I
+item
+.\"
+.TP 3
+.B
+list <type>
+.IP
+.I
+ns
+bladiebla
+.IP
+.I
+host
+bladiebla
+.IP
+.I
+items
+bladiebla
+.\"
+.TP 3
+.B
+host <host> [ns <ns>]
+bladiebla
+.\"
+.TP 3
+.B
+ns <ns>
+bladiebla
+.\"
+.TP 3
+.B
+publish <item> [ts] <value>
+bladiebla
+.\"
+.TP 3
+.B
+publish-timestamp <ts>
+bladiebla
+.\"
+.SH EXAMPLES 
+To list all the available namespaces of a host, use the
+.BR list ns
+command.
+.PP
+.nf
+.RS
+G> host example.com
+G(h:example.com)> list ns
+SYSTEM
+FILESYSTEMS
+NETWORK
+.RE
+.fi
+.PP
+.nf
+.RS
+G> connect jdoe his-password
+G> host example.com
+G(h:example.com)> ns SYSTEM
+G(h:example.com:SYSTEM)> publish cpu.load.avg[1] 2014  0.1
+G(h:example.com)> host
+G> disconnect
+.RE
+.fi
+.PP
+.nf
+.RS
+G> connect jdoe his-password
+G> host example.com
+G(h:example.com)> ns SYSTEM
+G(h:example.com:SYSTEM)> publish cpu.load.avg[1] 2014  0.1
+G(h:example.com)> host
+G> disconnect
+.RE
+.fi
+.\"
+.SH BUGS
+It doesn't work yet.
+.\"
+.SH SEE ALSO
+.PP
+.BR arguxd (1),
+.BR argux.conf (5),
+.BR libargux (3)

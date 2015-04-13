@@ -1,0 +1,10 @@
+.\" LIBARGUX library man-page
+.TH LIBARGUX 3 "October 2015" @PACKAGE_VERSION@ "Argux Documentation"
+.SH NAME
+libargux \- Argux Extension Library
+.SH SYNOPSIS
+#include <libargux/libargux.h>
+.SH DESCRIPTION
+\...
+.SH BUGS
+It doesn't work yet.
