@@ -1,0 +1,104 @@
+-- BEGIN --
+
+PRAGMA foreign_keys = ON;
+
+BEGIN TRANSACTION;
+
+-- TABLE GENERIC --
+-------------------
+CREATE TABLE 'GENERIC'
+(
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(16) UNIQUE NOT NULL,
+    value VARCHAR(20)
+);
+INSERT INTO 'GENERIC'(name,value) VALUES ('SCHEMA-VERSION', '1.0');
+
+-- TABLE ROLE --
+----------------
+CREATE TABLE 'ROLE'
+(
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(16) UNIQUE NOT NULL
+);
+INSERT INTO 'ROLE'(name) VALUES ('SYS');
+
+
+-- TABLE HOSTS --
+-----------------
+CREATE TABLE 'HOSTS'
+(
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(128) UNIQUE NOT NULL,
+    fqdn VARCHAR(256)
+);
+CREATE INDEX i_host_id ON HOSTS(id);
+
+-- TABLE NAMESPACE --
+---------------------
+CREATE TABLE 'NAMESPACE'
+(
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(128) NOT NULL,
+    host_id INTEGER NOT NULL,
+
+    FOREIGN KEY (host_id) REFERENCES HOSTS(id),
+    UNIQUE (host_id, name)
+);
+
+-- TABLE METRICS --
+-------------------
+CREATE TABLE 'METRICS'
+(
+    id INTEGER PRIMARY KEY,
+    ns_id INTEGER NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    type VARCHAR(20) NOT NULL,
+
+    FOREIGN KEY(ns_id) REFERENCES NAMESPACE(id),
+    UNIQUE (ns_id, name),
+    CHECK
+    (
+        type = "INTEGER" OR
+        type = "STRING" OR
+        type = "DOUBLE"
+    )
+);
+CREATE INDEX i_metrics_id ON METRICS(id);
+CREATE INDEX i_metrics_name ON METRICS(name);
+
+-- TABLE VALUES_INTEGER --
+--------------------------
+CREATE TABLE 'VALUES_INTEGER'
+(
+    id INTEGER PRIMARY KEY,
+    metric_id INTEGER NOT NULL,
+    value INTEGER NOT NULL,
+    timestamp DATETIME NOT NULL,
+
+    FOREIGN KEY(metric_id) REFERENCES METRICS(id)
+);
+CREATE INDEX i_values_integer_ts ON VALUES_INTEGER(timestamp);
+
+--- PERMISSIONS ---
+
+-- TABLE PERM --
+----------------
+CREATE TABLE 'HOST_PERM'
+(
+    id INTEGER PRIMARY KEY,
+    role_id INTEGER NOT NULL,
+    host_id INTEGER NOT NULL,
+    read  INTEGER NOT NULL DEFAULT 0,
+    write INTEGER NOT NULL DEFAULT 0,
+    admin INTEGER NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (role_id) REFERENCES ROLE(id),
+    FOREIGN KEY (host_id) REFERENCES HOSTS(id),
+    UNIQUE (host_id, role_id)
+);
+
+
+COMMIT;
+
+-- END --
