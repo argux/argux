@@ -58,6 +58,8 @@ static char cmd[256];
 int
 parse_register (char **tokens, int n_tokens) {
 
+    int a = 0;
+
     /* REGISTER */
     if (strcmp(tokens[0], "register") == 0) {
         if (client_connected() == 0) {
@@ -102,7 +104,7 @@ parse_register (char **tokens, int n_tokens) {
                 return -1;
             }
 
-            for (int a = 0; a < strlen(tokens[2]); ++a) {
+            for (a = 0; a < strlen(tokens[2]); ++a) {
                 if (tokens[2][a] >= 'a' && tokens[2][a] <= 'z') {
                     tokens[2][a]-=32;
                 }
