@@ -19,8 +19,7 @@ argux_LDADD = \
     $(ZMQ_LIBS) \
     $(PTHREAD_LIBS) \
     -lncurses \
-    -lrt \
-    -ledit
+    -lrt
 
 argux_LDFLAGS = \
     $(PLATFORM_LDFLAGS)
