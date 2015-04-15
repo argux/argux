@@ -1,3 +1,4 @@
+if (ENABLE_CONFIG_FILE)
 
 CONFIG_FILE=pgsql-db-connect.conf
 

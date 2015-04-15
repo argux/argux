@@ -223,6 +223,12 @@ AC_ARG_ENABLE(debug,
 	]
 )
 
+AC_ARG_ENABLE(pgsql,
+    [  --enable-pgsql          enable pgsql],
+    [ enable_pgsql=yes]
+)
+AM_CONDITIONAL([ENABLE_PGSQL], [test "$enable_pgsql" = yes])
+
 AC_OUTPUT([
 Makefile
 po/Makefile.in

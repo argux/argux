@@ -25,6 +25,7 @@ SQLITE_TESTDATA = \
     sqlite3-db-listprop.conf \
     sqlite3-db-plugin.symbols
 
+if ENABLE_PGSQL
 PGSQL_TESTS = \
     pgsql-symbols.sh        \
     pgsql-api.sh            \
@@ -35,6 +36,7 @@ PGSQL_TESTDATA = \
     pgsql-db-connect.conf  \
     pgsql-db-listprop.conf \
     pgsql-db-plugin.symbols
+endif
 
 
 TEST_EXTENSIONS = .sh
