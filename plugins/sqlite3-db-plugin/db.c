@@ -166,7 +166,15 @@ int
 _sqlite3_db_disconnect (
         ArguxError **error)
 {
-    sqlite3_close (_sqlite3_db);
+    int ret = sqlite3_close (_sqlite3_db);
+    if (ret == SQLITE_BUSY) {
+        if ( error != NULL) {
+            *error = argux_error_new (
+                    "Cannot close sqlite-database, "
+                    "not all resources are properly finalized.\n");
+        }
+        return 1;
+    }
     return 0;
 }
 
