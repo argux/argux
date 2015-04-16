@@ -73,6 +73,7 @@
 #include "settings.h"
 #include "scheduler.h"
 #include "db.h"
+#include "fqdn.h"
 
 #ifndef MAX_PLUGINS
 #define MAX_PLUGINS 10
@@ -163,6 +164,59 @@ process_signal (int s)
     return;
 }
 
+void
+autoregister_host () {
+
+    char *hostname = get_fqdn();
+    void *host_ptr = NULL;
+    ArguxError *error = NULL;
+
+    if (strcmp(hostname, "localhost") == 0) {
+        argux_log_warning (
+                "Failed to register host, "
+                "autoregister_host enabled, "
+                "but fqdn resolves to localhost.");
+        return;
+    }
+
+    _db_plugin->host.get(
+            hostname,
+            &host_ptr,
+            &error); 
+    if (host_ptr == NULL) {
+        argux_log_info (
+                "autoregister_host enabled, "
+                "but host '%s' not found.",
+                hostname);
+        if (error) {
+            argux_error_free(error);
+            error = NULL;
+        }
+        _db_plugin->host.add (
+            hostname,
+            &error);
+        if (error) {
+            argux_log_error (
+                    "%s",
+                    argux_error_get_msg(error));
+            argux_error_free (error);
+            error = NULL;
+        }
+        _db_plugin->perm.host.set (
+                "SYS",
+                hostname,
+                3,
+                &error);
+        if (error) {
+            argux_log_error (
+                    "%s",
+                    argux_error_get_msg(error));
+            argux_error_free (error);
+            error = NULL;
+        }
+    }
+}
+
 /**
  * main
  * @argc: Number of elements in argv
@@ -192,7 +246,6 @@ main (int argc, char **argv)
     struct passwd *_pwd_res = NULL;
 
     void   *ctx = zmq_ctx_new ();
-    void   *host_ptr = NULL;
 
     char *config_file = NULL;
 
@@ -378,6 +431,11 @@ main (int argc, char **argv)
                 username);
     }
 
+    const char *plugin_d = argux_settings_get (settings, "plugin_dir");
+    if (plugin_d == NULL || strlen(plugin_d) == 0) {
+        plugin_d = PLUGINDIR;
+    }
+
 
     /**
      * Maximum 10 items (Development value).
@@ -385,9 +443,9 @@ main (int argc, char **argv)
     argux_items_init (10);
 
     /**
-     * Load all plugins from PLUGINDIR
+     * Load all plugins from PLUGIN_DIR
      */
-    plugin_dir = opendir (PLUGINDIR);
+    plugin_dir = opendir (plugin_d );
     if (plugin_dir != NULL)
     {
         while ((dirp = readdir (plugin_dir)) != NULL)
@@ -399,7 +457,7 @@ main (int argc, char **argv)
                         "can not load more plugins.");
                 break;
             }
-            i = snprintf (plugin_path, 1024, "%s/%s", PLUGINDIR, dirp->d_name);
+            i = snprintf (plugin_path, 1024, "%s/%s", plugin_d, dirp->d_name);
             if (i < 0)
             {
                 /* An error occurred */
@@ -507,56 +565,21 @@ main (int argc, char **argv)
             "autoregister_host");
     if (reg_host != NULL) {
 
-        char *hostname = "hermes";
-
         if (strcmp(reg_host, "true") == 0) {
-            _db_plugin->host.get(
-                    hostname,
-                    &host_ptr,
-                    &error); 
-            if (host_ptr == NULL) {
-                argux_log_info (
-                        "autoregister_host enabled, "
-                        "but host '%s' not found.",
-                        hostname);
-                if (error) {
-                    argux_error_free(error);
-                    error = NULL;
-                }
-                _db_plugin->host.add (
-                    hostname,
-                    &error);
-                if (error) {
-                    argux_log_error (
-                            "%s",
-                            argux_error_get_msg(error));
-                    argux_error_free (error);
-                    error = NULL;
-                }
-                _db_plugin->perm.host.set (
-                        "SYS",
-                        hostname,
-                        3,
-                        &error);
-                if (error) {
-                    argux_log_error (
-                            "%s",
-                            argux_error_get_msg(error));
-                    argux_error_free (error);
-                    error = NULL;
-                }
-            }
+            autoregister_host();
         } else {
-            argux_log_error("autoregister_host = '%s'", reg_host);
+            argux_log_debug ("autoregister_host = '%s'", reg_host);
         }
     } else {
-        argux_log_error("autoregister_host missing");
+        argux_log_debug ("autoregister_host missing");
     }
 
     /** Start the main loop */
     argux_scheduler_main (ctx, n_workers);
 
-    _db_plugin->db.disconnect(NULL);
+    if(_db_plugin->db.disconnect(&error)) {
+        argux_log_error("%s", argux_error_get_msg (error));
+    }
 
     exit (0);
 }

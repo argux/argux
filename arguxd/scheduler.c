@@ -57,6 +57,7 @@
 #include <libargux/libargux.h>
 
 #include "worker.h"
+#include "settings.h"
 #include "db.h"
 
 /** Define 10 Second interval */
@@ -94,7 +95,8 @@ argux_scheduler_main (void *ctx, int n_workers)
     zmq_bind (plugins, "inproc://workers");
     zmq_bind (controller, "inproc://controller");
     zmq_bind (data_processor, "inproc://data-processor");
-    zmq_bind (agent, "tcp://127.0.0.1:1234");
+
+    zmq_bind (agent, "tcp://0.0.0.0:1234");
 
     workers = argux_new (sizeof (pthread_t), n_workers);
 

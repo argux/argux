@@ -8,6 +8,7 @@ arguxd_SOURCES = \
     worker.c worker.h \
     scheduler.c scheduler.h \
     db.c db.h \
+    fqdn.c fqdn.h \
     util.c util.h
 
 arguxd_LDADD = \
