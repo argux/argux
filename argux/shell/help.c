@@ -66,21 +66,25 @@ parse_help (char **tokens, int n_tokens) {
             fprintf(stdout, "publish    - Publish\n");
             fprintf(stdout, "\n");
             fprintf(stdout, "help       - Show this message\n");
+            return 0;
         }
         if (n_tokens == 2) {
             if (strcmp(tokens[1], "connect") == 0) {
                 fprintf(stdout, "Usage:\n");
                 fprintf(stdout, "  connect <user> [password]\n");
+                return 0;
             }
             if (strcmp(tokens[1], "disconnect") == 0) {
                 fprintf(stdout, "Usage:\n");
-                fprintf(stdout, "  disconnect\\n\n");
+                fprintf(stdout, "  disconnect\n");
+                return 0;
             }
 
             if (strcmp(tokens[1], "register") == 0) {
                 fprintf(stdout, "register <type> - Register an item\n");
                 fprintf(stdout, "    host        - Register a host\n");
                 fprintf(stdout, "    ns          - Register a namespace\n");
+                return 0;
             }
 
             if (strcmp(tokens[1], "list") == 0) {
@@ -90,18 +94,47 @@ parse_help (char **tokens, int n_tokens) {
                 fprintf(stdout, "    items <ns> <host> - List items\n");
                 return 0;
             }
+            if (strcmp(tokens[1], "publish") == 0) {
+                fprintf(stdout, "publish - ");
+                return 0;
+            }
         }
+
         if (n_tokens == 3) {
             if (strcmp(tokens[1], "register") == 0) {
                 if (strcmp(tokens[2], "host") == 0) {
                     fprintf(stdout, "register host <options>\n");
+                    return 0;
                 }
                 if (strcmp(tokens[2], "ns") == 0) {
                     fprintf(stdout, "register ns <options>\n");
+                    return 0;
+                }
+                if (strcmp(tokens[2], "item") == 0) {
+                    fprintf(stdout, "register item <host> <ns> <name> ...\n");
+                    return 0;
                 }
             }
+            if (strcmp(tokens[1], "list") == 0) {
+                if (strcmp(tokens[2], "host") == 0) {
+                    fprintf(stdout, "list host\n");
+                    return 0;
+                }
+                if (strcmp(tokens[2], "ns") == 0) {
+                    fprintf(stdout, "list ns <host>\n");
+                    return 0;
+                }
+                if (strcmp(tokens[2], "items") == 0) {
+                    fprintf(stdout, "list items <host> [ns]\n");
+                    return 0;
+                }
+
+            }
         }
-        return 0;
+
+        fprintf(stdout, "unknown subject\n");
+
+        return -1;
     }
 
     return -1;

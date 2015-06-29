@@ -8,6 +8,7 @@ plugin_LTLIBRARIES = \
 sqlite3_db_plugin_la_SOURCES = \
     plugin.c plugin.h \
     db.c db.h \
+    principal.c principal.h \
     host.c host.h \
     ns.c ns.h \
     metric.c metric.h \

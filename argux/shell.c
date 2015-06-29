@@ -57,6 +57,7 @@
 #include "shell/help.h"
 #include "shell/exit.h"
 #include "shell/register.h"
+#include "shell/list.h"
 #include "client.h"
 
 #define MAX_TOKENS 32
@@ -72,6 +73,7 @@ static struct Command commands[] = {
     {"help",        parse_help},
     {"exit",        parse_exit},
     {"register",    parse_register},
+    {"list",        parse_list},
     {NULL,NULL}
 };
 
@@ -115,7 +117,7 @@ show_shell (int silent)
     while (1)
     {
         if (silent == 0) {
-            fprintf (stdout, "G> ");
+            fprintf (stdout, "A> ");
         }
 
         if(fgets (buf, 256, stdin) != NULL)

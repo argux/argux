@@ -83,19 +83,21 @@ enum
     OPTION_FATAL_WARNINGS,
     OPTION_HOST,
     OPTION_PORT,
-    OPTION_SILENT
+    OPTION_SILENT,
+    OPTION_CONFIG
 };
 
 /************************
  * Command-line options *
  ************************/
 static struct option long_options[] = {
-    {"version", 0, 0, 'V'},     /* OPTION_VERSION */
-    {"help", 0, 0, 'h'},        /* OPTION_HELP    */
-    {"fatal-warnings", 0, 0, 0},/* OPTION_FATAL_WARNINGS */
-    {"host", 0, 0, 'H'},        /* OPTION_HOST    */
-    {"port", 0, 0, 'P'},        /* OPTION_PORT    */
-    {"silent", 0, 0, 's'},      /* OPTION_SILENT  */
+    {"version", 0, 0, 'V'},                 /* OPTION_VERSION */
+    {"help", 0, 0, 'h'},                    /* OPTION_HELP    */
+    {"fatal-warnings", 0, 0, 0},            /* OPTION_FATAL_WARNINGS */
+    {"host", 0, 0, 'H'},                    /* OPTION_HOST    */
+    {"port", 0, 0, 'P'},                    /* OPTION_PORT    */
+    {"silent", 0, 0, 's'},                  /* OPTION_SILENT  */
+    {"config", required_argument, 0, 'c'},  /* OPTION_CONFIG  */
     {0, 0, 0, 0}
 };
 
@@ -103,7 +105,7 @@ static void
 show_version ()
 {
     printf ("%s %s\n", PACKAGE_NAME, PACKAGE_VERSION);
-    printf ("Copyright (c) 2012 Stephan Arts\n");
+    printf ("Copyright (c) 2012-2015 Stephan Arts\n");
     printf ("There is NO WARRANTY, to the extent permitted by law.\n");
     return;
 }
@@ -125,6 +127,8 @@ show_usage ()
     printf ("                     (default: 5678)\n");
     printf ("   --silent   -s     Silent CLI\n");
     printf ("                     (do not print shell prompt)\n");
+    printf ("   --config=<file>   Use different config-file\n");
+    printf ("              -c <file>\n");
     printf ("\n");
     printf ("   --fatal-warnings  Make all warnings fatal\n");
     return;
@@ -145,6 +149,9 @@ main (int argc, char **argv)
     int     c = 0;
     int     verbosity = 0;
     int     silent = 0;
+    int     show_menu = 0;
+
+    char   *config_file = NULL;
 
     while (1)
     {
@@ -175,6 +182,12 @@ main (int argc, char **argv)
             case OPTION_SILENT:
                 silent = 1;
                 break;
+            case OPTION_CONFIG:
+                if (config_file == NULL) {
+                    config_file = malloc (strlen(optarg)+1);
+                    strcpy(config_file, optarg);
+                }
+                break;
             }
             break;
         case 'V':
@@ -189,8 +202,7 @@ main (int argc, char **argv)
             verbosity = verbosity + 1;
             break;
         case 'i':
-            show_interactive_menu ();
-            exit (0);
+            show_menu = 1;
             break;
         case 'H':
         case 'P':
@@ -198,11 +210,27 @@ main (int argc, char **argv)
         case 's':
             silent = 1;
             break;
+        case 'c':
+            if (config_file == NULL) {
+                config_file = malloc (strlen(optarg)+1);
+                strcpy(config_file, optarg);
+            }
+            break;
         default:
             fprintf (stderr, "Try '%s --help' for more information\n", argv[0]);
             exit (1);
             break;
         }
+    }
+
+    if (config_file == NULL) {
+    }
+    else {
+    }
+
+    if (show_menu) {
+        show_interactive_menu ();
+        exit (0);
     }
 
     show_shell (silent);

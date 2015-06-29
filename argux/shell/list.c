@@ -56,12 +56,12 @@
 static char cmd[256];
 
 int
-parse_register (char **tokens, int n_tokens) {
+parse_list (char **tokens, int n_tokens) {
 
     int a = 0;
 
-    /* REGISTER */
-    if (strcmp(tokens[0], "register") == 0) {
+    /* LIST */
+    if (strcmp(tokens[0], "list") == 0) {
         if (client_connected() == 0) {
             fprintf(stdout, "Not connected to host\n");
             return -1;
@@ -71,59 +71,6 @@ parse_register (char **tokens, int n_tokens) {
             return -1;
         }
 
-        if (strcmp(tokens[1], "host") == 0) {
-            if (n_tokens < 3) {
-                fprintf(stdout, "missing argument\n");
-                return -1;
-            }
-            if (n_tokens > 3) {
-                fprintf(stdout, "too many arguments\n");
-                return -1;
-            }
-
-            fprintf(stdout, "<register host %s>\n", tokens[2]);
-            int i = snprintf(cmd, 256, "register host %s", tokens[2]);
-            char *resp = NULL;
-            size_t resp_len;
-
-            client_send_cmd ((void *)cmd, i, &resp, &resp_len);
-        }
-
-        if (strcmp(tokens[1], "ns") == 0) {
-            if (n_tokens < 4) {
-                fprintf(stdout, "missing argument\n");
-                return -1;
-            }
-            if (n_tokens > 5) {
-                fprintf(stdout, "too many arguments\n");
-                return -1;
-            }
-
-            if (strcmp(tokens[3], "on") != 0) {
-                fprintf(stdout, "invalid keyword %s", tokens[3]);
-                return -1;
-            }
-
-            for (a = 0; a < strlen(tokens[2]); ++a) {
-                if (tokens[2][a] >= 'a' && tokens[2][a] <= 'z') {
-                    tokens[2][a]-=32;
-                }
-            }
-
-            fprintf(stdout, "<register ns %s on %s>\n",
-                    tokens[2],
-                    tokens[4]);
-
-
-            int i = snprintf(cmd,
-                    256,
-                    "register ns %s on %s", tokens[2], tokens[4]);
-            char *resp = NULL;
-            size_t resp_len;
-
-            client_send_cmd ((void *)cmd, i, &resp, &resp_len);
-
-        }
         return 0;
     }
 

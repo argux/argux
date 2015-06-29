@@ -7,6 +7,7 @@ argux_SOURCES = \
     shell/disconnect.c shell/disconnect.h \
     shell/help.c shell/help.h \
     shell/exit.c shell/exit.h \
+    shell/list.c shell/list.h \
     shell/register.c shell/register.h \
     client.c client.h \
     interactive_menu.c interactive_menu.h \

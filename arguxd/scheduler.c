@@ -211,28 +211,50 @@ argux_scheduler_main (void *ctx, int n_workers)
         /* Put data in a database */
         if (items[3].revents & ZMQ_POLLIN)
         {
-            printf("GOT AGENT DATA\n");
             zmq_msg_t message_id;
             zmq_msg_init (&message_id);
             zmq_msg_recv (&message_id, agent, 0);
-            while (1)
+            if (!zmq_msg_more (&message_id))
             {
-                zmq_msg_t message;
-                zmq_msg_init (&message);
-                zmq_msg_recv (&message, agent, 0);
-
-                printf("%s\n", zmq_msg_data(&message));
-
-                zmq_msg_close (&message);
-
-                if (!zmq_msg_more (&message))
-                {
-                    break;
-                }
-
+                argux_log_debug("Invalid message");
             }
-            /* BUG: USE ZMQ_MSG_SEND */
-            printf("SEND AGENT DATA\n");
+
+            zmq_msg_t message_sep;
+            zmq_msg_init (&message_sep);
+            zmq_msg_recv (&message_sep, agent, 0);
+            zmq_msg_close (&message_sep);
+            if (!zmq_msg_more (&message_sep))
+            {
+                argux_log_debug("Invalid message");
+                continue;
+            }
+
+            zmq_msg_t message_tok;
+            zmq_msg_init (&message_tok);
+            zmq_msg_recv (&message_tok, agent, 0);
+
+            if (!zmq_msg_more(&message_tok)) {
+                printf("AUTH ATTEMPT\n"); 
+                printf("cmd: %s\n", zmq_msg_data(&message_tok));
+            } else {
+                printf("T: %s\n", zmq_msg_data(&message_tok));
+                while (1)
+                {
+                    zmq_msg_t message;
+                    zmq_msg_init (&message);
+                    zmq_msg_recv (&message, agent, 0);
+
+                    printf("cmd: %s\n", zmq_msg_data(&message));
+
+                    zmq_msg_close (&message);
+
+                    if (!zmq_msg_more (&message))
+                    {
+                        break;
+                    }
+
+                }
+            }
 
             zmq_msg_t message_reply;
             zmq_msg_init_data (&message_reply, "OKAY", 4, NULL, NULL);

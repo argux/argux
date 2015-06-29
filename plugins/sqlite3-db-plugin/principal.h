@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2014 Stephan Arts. All Rights Reserved.
+ * Copyright (c) 2015 Stephan Arts. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,28 +27,18 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+int
+_sqlite3_principal_add (
+        const char *name,
+        ArguxError **error);
 
 int
-client_connect_pass (
-        const char *uri,
-        const char *user,
-        const char *password);
-
-void
-client_disconnect (
-        void);
+_sqlite3_principal_get (
+        const char *name,
+        void **principal_ptr,
+        ArguxError **error);
 
 int
-client_connected (
-        void);
-
-void
-client_send_cmd (
-        void  *cmd,
-        size_t len,
-        void **resp,
-        size_t *r_len);
-
-#endif
+_sqlite3_principal_free (
+        void **principal_ptr,
+        ArguxError **error);

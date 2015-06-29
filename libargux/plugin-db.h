@@ -55,6 +55,21 @@ struct _ArguxPluginDB
         int  (*init) (ArguxError **);
     } db;
 
+    /* Principal */
+    struct
+    {
+        int (*add)(
+            const char *name,
+            ArguxError **);
+        int (*get)(
+            const char *name,
+            void **principal_ptr,
+            ArguxError **);
+        int (*free)(
+                const void *principal_ptr,
+                ArguxError **);
+    } principal;
+
     /* Host */
     struct
     {
