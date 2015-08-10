@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Stephan Arts. All Rights Reserved.
+ * Copyright (c) 2015 Stephan Arts. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,26 +27,12 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __LIBARGUX_H__
-#define __LIBARGUX_H__
 
-#define LIBARGUX_INSIDE_LIBARGUX_H
+int
+parse_command (const char *cmd, int len, char ***args, int *argc);
 
-#include <time.h>
+int
+register_command (const char *name, int (*cmd)(char **args, int argc));
 
-#include <libargux/log.h>
-#include <libargux/error.h>
-#include <libargux/types.h>
-#include <libargux/slist.h>
-#include <libargux/itemtype.h>
-#include <libargux/item.h>
-#include <libargux/metric.h>
-#include <libargux/value.h>
-#include <libargux/assert.h>
-#include <libargux/memory.h>
-#include <libargux/plugin.h>
-#include <libargux/plugin-db.h>
-
-void
-        libargux_init (void);
-#endif                          /* __LIBARGUX_H__ */
+int
+run_command (const char *name, char **args, int argc);

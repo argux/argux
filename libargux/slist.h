@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Stephan Arts. All Rights Reserved.
+ * Copyright (c) 2015 Stephan Arts. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,26 +27,28 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __LIBARGUX_H__
-#define __LIBARGUX_H__
+#if !defined (LIBARGUX_INSIDE_LIBARGUX_H) && !defined(LIBARGUX_COMPILATION)
+#error "Only <libargux/libargux.h> can be included directly, this file may disappear or change contents"
+#endif
 
-#define LIBARGUX_INSIDE_LIBARGUX_H
+#ifndef __ARGUX_SLIST_H__
+#define __ARGUX_SLIST_H__
 
-#include <time.h>
+typedef struct _ArguxSList ArguxSList;
 
-#include <libargux/log.h>
-#include <libargux/error.h>
-#include <libargux/types.h>
-#include <libargux/slist.h>
-#include <libargux/itemtype.h>
-#include <libargux/item.h>
-#include <libargux/metric.h>
-#include <libargux/value.h>
-#include <libargux/assert.h>
-#include <libargux/memory.h>
-#include <libargux/plugin.h>
-#include <libargux/plugin-db.h>
+ArguxSList *
+argux_slist_new(void *data);
 
-void
-        libargux_init (void);
-#endif                          /* __LIBARGUX_H__ */
+ArguxSList *
+argux_slist_append(ArguxSList *list, void *data);
+
+ArguxSList *
+argux_slist_prepend(ArguxSList *list, void *data);
+
+ArguxSList *
+argux_slist_next (ArguxSList *list);
+
+void *
+argux_slist_get_data (ArguxSList *list);
+
+#endif /* __ARGUX_SLIST_H__ */

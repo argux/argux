@@ -7,6 +7,7 @@ arguxd_SOURCES = \
     settings.c settings.h \
     worker.c worker.h \
     scheduler.c scheduler.h \
+    command.c command.h \
     db.c db.h \
     fqdn.c fqdn.h \
     util.c util.h

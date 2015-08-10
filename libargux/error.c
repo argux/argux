@@ -42,9 +42,13 @@
 
 #include "error.h"
 
+/**
+ * Error Class.
+ */
 struct _ArguxError
 {
-    char   *msg;
+    /** Error-message */
+    char   *msg; 
 };
 
 ArguxError *

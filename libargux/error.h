@@ -36,6 +36,9 @@
 
 typedef struct _ArguxError ArguxError;
 
+/**
+ * Create a new Argux Error object.
+ */
 ArguxError *
 argux_error_new (
         char *format,...);

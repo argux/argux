@@ -25,8 +25,16 @@ Network port used for listing for commands specified by argux-agent.
 listen_address
 Network address used for listing for commands specified by argux-agent.
 (Default: 127.0.0.1)
+.TP
+autoregister_host
+Register host in the database. This value is true by default, allowing a system to monitor itself.
+(Default: true)
+.TP
+principal_provider
+Datasource that contains the users that can login to argux. At the moment only db is supported.
+(Default: db)
 .SH SEE ALSO
 .
 .BR argux  (1),
 .BR arguxd (1),
-.BR libgurardian (3)
+.BR libargux (3)

@@ -59,6 +59,7 @@
 #include "worker.h"
 #include "settings.h"
 #include "db.h"
+#include "command.h"
 
 /** Define 10 Second interval */
 #define INTERVAL 10
@@ -78,6 +79,8 @@ argux_scheduler_main (void *ctx, int n_workers)
     void   *controller;
     void   *data_processor;
     void   *agent;
+    char  **cmd_args = NULL;
+    int     n_cmd_args = 0;
 
     pthread_t *workers = NULL;
 
@@ -234,8 +237,19 @@ argux_scheduler_main (void *ctx, int n_workers)
             zmq_msg_recv (&message_tok, agent, 0);
 
             if (!zmq_msg_more(&message_tok)) {
-                printf("AUTH ATTEMPT\n"); 
-                printf("cmd: %s\n", zmq_msg_data(&message_tok));
+                ret = parse_command (
+                        zmq_msg_data(&message_tok),
+                        zmq_msg_size(&message_tok),
+                        &cmd_args,
+                        &n_cmd_args);
+
+                if (ret == 0) {
+                    printf("%s\n", cmd_args[1]);
+
+                    run_command (cmd_args[1], &cmd_args[2], n_cmd_args-1);
+                }
+
+
             } else {
                 printf("T: %s\n", zmq_msg_data(&message_tok));
                 while (1)
@@ -244,7 +258,17 @@ argux_scheduler_main (void *ctx, int n_workers)
                     zmq_msg_init (&message);
                     zmq_msg_recv (&message, agent, 0);
 
-                    printf("cmd: %s\n", zmq_msg_data(&message));
+                    ret = parse_command (
+                            zmq_msg_data(&message),
+                            zmq_msg_size(&message),
+                            &cmd_args,
+                            &n_cmd_args);
+
+                    if (ret == 0) {
+                        printf("%s\n", cmd_args[1]);
+
+                        run_command (cmd_args[1], &cmd_args[2], n_cmd_args-1);
+                    }
 
                     zmq_msg_close (&message);
 

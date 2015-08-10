@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Stephan Arts. All Rights Reserved.
+ * Copyright (c) 2015 Stephan Arts. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,26 +27,83 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __LIBARGUX_H__
-#define __LIBARGUX_H__
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-#define LIBARGUX_INSIDE_LIBARGUX_H
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 
-#include <time.h>
+#include "memory.h"
+#include "slist.h"
 
-#include <libargux/log.h>
-#include <libargux/error.h>
-#include <libargux/types.h>
-#include <libargux/slist.h>
-#include <libargux/itemtype.h>
-#include <libargux/item.h>
-#include <libargux/metric.h>
-#include <libargux/value.h>
-#include <libargux/assert.h>
-#include <libargux/memory.h>
-#include <libargux/plugin.h>
-#include <libargux/plugin-db.h>
+struct _ArguxSList
+{
+    void *data;
 
-void
-        libargux_init (void);
-#endif                          /* __LIBARGUX_H__ */
+    ArguxSList *next;
+};
+
+ArguxSList *
+argux_slist_new(void *data)
+{
+    ArguxSList *list = argux_new (sizeof(ArguxSList), 1);
+
+    list->data = data;
+
+    list->next = NULL;
+
+    return list;
+}
+
+ArguxSList *
+argux_slist_append(ArguxSList *list, void *data)
+{
+    ArguxSList *iter = list;
+    ArguxSList *item = argux_new (sizeof(ArguxSList), 1);
+
+    item->data = data;
+
+    item->next = NULL;
+
+    if (iter == NULL)
+    {
+        return item;
+    }
+
+    while (iter->next != NULL)
+    {
+        iter = iter->next;
+    }
+
+    iter->next = item;
+
+    return list;
+} 
+
+ArguxSList *
+argux_slist_prepend(ArguxSList *list, void *data)
+{
+
+    ArguxSList *item = argux_new (sizeof(ArguxSList), 1);
+
+    item->data = data;
+
+    item->next = list;
+
+    return item;
+
+}
+
+ArguxSList *
+argux_slist_next (ArguxSList *list)
+{
+    return list->next;
+}
+
+void *
+argux_slist_get_data (ArguxSList *list)
+{
+    return list->data;
+}

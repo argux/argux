@@ -10,6 +10,7 @@ libargux_1_0_la_SOURCES = \
     assert.c \
     item.c \
     value.c \
+    slist.c \
     log.c \
     error.c \
     plugin.c \
@@ -23,6 +24,7 @@ libargux_include_HEADERS = \
     memory.h \
     assert.h \
     log.h \
+    slist.h \
     types.h \
     error.h \
     item.h \
