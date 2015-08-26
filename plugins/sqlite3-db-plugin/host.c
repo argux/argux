@@ -120,7 +120,7 @@ _sqlite3_host_get (
             (strcmp(_i_hosts_cache_name[mid]->name,
                     name) == 0))
         {
-            printf("CACHE HIT\n");
+            argux_log_debug("CACHE HIT\n");
 
             (*host_ptr) = _i_hosts_cache_name[mid];
 
@@ -128,7 +128,7 @@ _sqlite3_host_get (
         }
     }
 
-    printf("CACHE MISS\n");
+    argux_log_debug("CACHE MISS\n");
 
     sqlite3_snprintf(
             128,

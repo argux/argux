@@ -21,7 +21,8 @@
  * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
  * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE,DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * LOSS OF USE,DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
@@ -46,6 +47,8 @@
 
 #include "command.h"
 
+#include "command/connect.h"
+
 #define OVECCOUNT 30
 
 ArguxSList *list = NULL;
@@ -56,12 +59,12 @@ struct _Command
 {
     char name[255];
 
-    int (*cmd)(char **args, int argc);
+    int (*cmd)(int argc, char **args);
 };
 
 
 int
-parse_command (const char *cmd, int len, char ***args, int *argc)
+parse_command (const char *cmd, int len, int *argc, char ***args)
 {
     const char *r_error;
     int r_error_offset;
@@ -117,7 +120,7 @@ parse_command (const char *cmd, int len, char ***args, int *argc)
 }
 
 int
-register_command (const char *name, int (*cmd)(char **args, int argc))
+register_command (const char *name, int (*cmd)(int argc, char **args))
 {
     Command *command = argux_new(1, sizeof(Command));
 
@@ -130,8 +133,27 @@ register_command (const char *name, int (*cmd)(char **args, int argc))
 }
 
 int
-run_command (const char *name, char **args, int argc)
+run_command (const char *name, int argc, char **args)
 {
-    printf("AAAAAAAAAAAA(RUN)\n");
-    return 0;
+    Command *command = NULL;
+
+    ArguxSList *iter = list;
+
+    while (iter)
+    {
+        command = argux_slist_get_data (iter);
+
+        if (!strcmp(command->name, name))
+        {
+            return command->cmd(argc, args);
+        }
+        iter = argux_slist_next (iter);
+    }
+    return 1;
+}
+
+void
+register_commands (void)
+{
+    register_command("connect", command_connect);
 }

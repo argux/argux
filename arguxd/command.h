@@ -29,10 +29,13 @@
 
 
 int
-parse_command (const char *cmd, int len, char ***args, int *argc);
+parse_command (const char *cmd, int len, int *argc, char ***args);
 
 int
-register_command (const char *name, int (*cmd)(char **args, int argc));
+run_command (const char *name, int argc, char **args);
 
 int
-run_command (const char *name, char **args, int argc);
+register_command (const char *name, int (*cmd)(int argc, char **args));
+
+void
+register_commands (void);

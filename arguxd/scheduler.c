@@ -240,18 +240,18 @@ argux_scheduler_main (void *ctx, int n_workers)
                 ret = parse_command (
                         zmq_msg_data(&message_tok),
                         zmq_msg_size(&message_tok),
-                        &cmd_args,
-                        &n_cmd_args);
+                        &n_cmd_args,
+                        &cmd_args);
 
                 if (ret == 0) {
-                    printf("%s\n", cmd_args[1]);
-
-                    run_command (cmd_args[1], &cmd_args[2], n_cmd_args-1);
+                    run_command (cmd_args[0], n_cmd_args-1, &cmd_args[1]);
                 }
 
 
             } else {
-                printf("T: %s\n", zmq_msg_data(&message_tok));
+
+                argux_log_debug("T: %s\n", zmq_msg_data(&message_tok));
+
                 while (1)
                 {
                     zmq_msg_t message;
@@ -261,13 +261,11 @@ argux_scheduler_main (void *ctx, int n_workers)
                     ret = parse_command (
                             zmq_msg_data(&message),
                             zmq_msg_size(&message),
-                            &cmd_args,
-                            &n_cmd_args);
+                            &n_cmd_args,
+                            &cmd_args);
 
                     if (ret == 0) {
-                        printf("%s\n", cmd_args[1]);
-
-                        run_command (cmd_args[1], &cmd_args[2], n_cmd_args-1);
+                        run_command (cmd_args[0], n_cmd_args-1, &cmd_args[1]);
                     }
 
                     zmq_msg_close (&message);
@@ -284,19 +282,19 @@ argux_scheduler_main (void *ctx, int n_workers)
             zmq_msg_init_data (&message_reply, "OKAY", 4, NULL, NULL);
             
             int rc = zmq_msg_send(&message_id, agent, ZMQ_SNDMORE);
-            printf("%d\n", rc);
+            //printf("%d\n", rc);
+
             zmq_msg_close(&message_id);
             zmq_msg_init(&message_id);
+
             rc = zmq_msg_send(&message_id, agent, ZMQ_SNDMORE);
-            printf("%d\n", rc);
+            //printf("%d\n", rc);
 
             rc = zmq_msg_send(&message_reply, agent, 0);
-            printf("%d\n", rc);
+            //printf("%d\n", rc);
 
             zmq_msg_close(&message_id);
             zmq_msg_close(&message_reply);
-
-            printf("...\n");
         }
     }
 

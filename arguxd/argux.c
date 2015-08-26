@@ -75,6 +75,8 @@
 #include "db.h"
 #include "fqdn.h"
 
+#include "command.h"
+
 #ifndef MAX_PLUGINS
 #define MAX_PLUGINS 10
 #endif
@@ -573,6 +575,8 @@ main (int argc, char **argv)
     } else {
         argux_log_debug ("autoregister_host missing");
     }
+
+    register_commands();
 
     /** Start the main loop */
     argux_scheduler_main (ctx, n_workers);

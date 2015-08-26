@@ -10,7 +10,8 @@ arguxd_SOURCES = \
     command.c command.h \
     db.c db.h \
     fqdn.c fqdn.h \
-    util.c util.h
+    util.c util.h \
+    command/connect.c command/connect.h
 
 arguxd_LDADD = \
     $(top_builddir)/libargux/libargux-$(LIBARGUX_VERSION_API).la \
@@ -37,3 +38,5 @@ arguxd_DEPENDENCIES = \
 
 AM_CPPFLAGS = \
     -I$(top_srcdir)
+
+AUTOMAKE_OPTIONS = subdir-options
