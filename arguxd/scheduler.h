@@ -31,7 +31,7 @@
 #define __ARGUX_SCHEDULER_H__
 
 void
-        argux_scheduler_main (void *ctx, int n_workers);
+        argux_scheduler_main (int port, int n_workers);
 
 void
         argux_scheduler_main_quit (void);

@@ -47,10 +47,12 @@
 
 #include <pwd.h>
 
+#include <sys/types.h>
+#include <sys/select.h>
 #include <sys/socket.h>
+
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/types.h>
 #include <sys/un.h>
 
 #include <dirent.h>
@@ -62,11 +64,10 @@
 
 #include <openssl/sha.h>
 
-#include <zmq.h>
-
 #include <time.h>
 
 #include <libargux/libargux.h>
+
 
 #include "assert.h"
 #include "util.h"
@@ -241,13 +242,13 @@ main (int argc, char **argv)
 
     int     n_workers = 2;
 
+    int     port = 8888;
+
     char    plugin_path[1024];
 
     struct sigaction sa;
 
     struct passwd *_pwd_res = NULL;
-
-    void   *ctx = zmq_ctx_new ();
 
     char *config_file = NULL;
 
@@ -388,6 +389,13 @@ main (int argc, char **argv)
     if (db_type == NULL) {
         argux_log_error ("DB-Type not specified in config-file");
         exit(1);
+    }
+
+    const char *http_port = argux_settings_get (settings, "http_port");
+    if (http_port == NULL) {
+        port = 8888; 
+    } else {
+        port = atoi(http_port);
     }
 
     const char *username = argux_settings_get (settings, "username");
@@ -576,10 +584,8 @@ main (int argc, char **argv)
         argux_log_debug ("autoregister_host missing");
     }
 
-    register_commands();
-
     /** Start the main loop */
-    argux_scheduler_main (ctx, n_workers);
+    argux_scheduler_main (port, n_workers);
 
     if(_db_plugin->db.disconnect(&error)) {
         argux_log_error("%s", argux_error_get_msg (error));

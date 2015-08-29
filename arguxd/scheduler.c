@@ -44,8 +44,8 @@
 #include <string.h>
 
 #include <sys/types.h>
-
-#include <zmq.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 
 #include <pthread.h>
 #include <errno.h>
@@ -53,6 +53,10 @@
 #include <time.h>
 
 #include <semaphore.h>
+
+#include <microhttpd.h>
+
+#include <zmq.h>
 
 #include <libargux/libargux.h>
 
@@ -64,42 +68,49 @@
 /** Define 10 Second interval */
 #define INTERVAL 10
 
-void   *_ctx = NULL;
+void   *ctx = NULL;
 
 #define         BUFFER_LEN      1024
 char    buffer[BUFFER_LEN];
 
+#define PORT 8888
+
+int handle_request (void *cls, struct MHD_Connection *connection, 
+                    const char *url, 
+                    const char *method, const char *version, 
+                    const char *upload_data, 
+                    size_t *upload_data_size, void **con_cls);
+
+
 void
-argux_scheduler_main (void *ctx, int n_workers)
+argux_scheduler_main (int port, int n_workers)
 {
     int     i = 0;
     int     no_linger = 0;
     int     ret = 0;
     void   *plugins;
     void   *controller;
-    void   *data_processor;
-    void   *agent;
-    char  **cmd_args = NULL;
-    int     n_cmd_args = 0;
 
     pthread_t *workers = NULL;
 
-    if (_ctx != NULL)
+    struct MHD_Daemon *daemon;
+
+    if (ctx != NULL)
     {
         return;
     }
-    _ctx = ctx;
+
+    daemon = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY, PORT, NULL, NULL, 
+                             &handle_request, NULL, MHD_OPTION_END);
+    if (NULL == daemon) return;
+
+    ctx = zmq_ctx_new();
 
     plugins = zmq_socket (ctx, ZMQ_REP);
     controller = zmq_socket (ctx, ZMQ_ROUTER);
-    data_processor = zmq_socket (ctx, ZMQ_REP);
-    agent = zmq_socket (ctx, ZMQ_ROUTER);
 
     zmq_bind (plugins, "inproc://workers");
     zmq_bind (controller, "inproc://controller");
-    zmq_bind (data_processor, "inproc://data-processor");
-
-    zmq_bind (agent, "tcp://0.0.0.0:1234");
 
     workers = argux_new (sizeof (pthread_t), n_workers);
 
@@ -107,7 +118,7 @@ argux_scheduler_main (void *ctx, int n_workers)
     {
         argux_worker_thread_new (
                 &workers[i],
-                _ctx);
+                ctx);
     }
 
     /**
@@ -122,10 +133,8 @@ argux_scheduler_main (void *ctx, int n_workers)
         zmq_pollitem_t items[] = {
             {plugins, 0, ZMQ_POLLIN, 0},
             {controller, 0, ZMQ_POLLIN, 0},
-            {data_processor, 0, ZMQ_POLLIN, 0},
-            {agent, 0, ZMQ_POLLIN, 0},
         };
-        zmq_poll (items, 4, -1);
+        zmq_poll (items, 2, -1);
 
         /* Scheduling of worker threads */
         if (items[0].revents & ZMQ_POLLIN)
@@ -185,117 +194,6 @@ argux_scheduler_main (void *ctx, int n_workers)
                 }
             }
         }
-        /* Put data in a database */
-        if (items[2].revents & ZMQ_POLLIN)
-        {
-
-            while (1)
-            {
-                /* Every message-part is a log-entry */
-                zmq_msg_t message;
-                zmq_msg_init (&message);
-                zmq_msg_recv (&message, data_processor, 0);
-
-                //argux_db_insert_entry ();
-
-                //t = zmq_msg_size (&message);
-
-                zmq_msg_close (&message);
-
-                if (!zmq_msg_more (&message))
-                {
-                    break;
-                }
-            }
-
-            zmq_send (data_processor, "0", 1, 0);
-        }
-
-        /* Put data in a database */
-        if (items[3].revents & ZMQ_POLLIN)
-        {
-            zmq_msg_t message_id;
-            zmq_msg_init (&message_id);
-            zmq_msg_recv (&message_id, agent, 0);
-            if (!zmq_msg_more (&message_id))
-            {
-                argux_log_debug("Invalid message");
-            }
-
-            zmq_msg_t message_sep;
-            zmq_msg_init (&message_sep);
-            zmq_msg_recv (&message_sep, agent, 0);
-            zmq_msg_close (&message_sep);
-            if (!zmq_msg_more (&message_sep))
-            {
-                argux_log_debug("Invalid message");
-                continue;
-            }
-
-            zmq_msg_t message_tok;
-            zmq_msg_init (&message_tok);
-            zmq_msg_recv (&message_tok, agent, 0);
-
-            if (!zmq_msg_more(&message_tok)) {
-                ret = parse_command (
-                        zmq_msg_data(&message_tok),
-                        zmq_msg_size(&message_tok),
-                        &n_cmd_args,
-                        &cmd_args);
-
-                if (ret == 0) {
-                    run_command (cmd_args[0], n_cmd_args-1, &cmd_args[1]);
-                }
-
-
-            } else {
-
-                argux_log_debug("T: %s\n", zmq_msg_data(&message_tok));
-
-                while (1)
-                {
-                    zmq_msg_t message;
-                    zmq_msg_init (&message);
-                    zmq_msg_recv (&message, agent, 0);
-
-                    ret = parse_command (
-                            zmq_msg_data(&message),
-                            zmq_msg_size(&message),
-                            &n_cmd_args,
-                            &cmd_args);
-
-                    if (ret == 0) {
-                        run_command (cmd_args[0], n_cmd_args-1, &cmd_args[1]);
-                    }
-
-                    zmq_msg_close (&message);
-
-                    if (!zmq_msg_more (&message))
-                    {
-                        break;
-                    }
-
-                }
-            }
-
-            zmq_msg_t message_reply;
-            zmq_msg_init_data (&message_reply, "OKAY", 4, NULL, NULL);
-            
-            int rc = zmq_msg_send(&message_id, agent, ZMQ_SNDMORE);
-            //printf("%d\n", rc);
-
-            zmq_msg_close(&message_id);
-            zmq_msg_init(&message_id);
-
-            rc = zmq_msg_send(&message_id, agent, ZMQ_SNDMORE);
-            //printf("%d\n", rc);
-
-            rc = zmq_msg_send(&message_reply, agent, 0);
-            //printf("%d\n", rc);
-
-            zmq_msg_close(&message_id);
-            zmq_msg_close(&message_reply);
-        }
     }
 
     zmq_setsockopt (
@@ -312,27 +210,16 @@ argux_scheduler_main (void *ctx, int n_workers)
             sizeof (no_linger));
     zmq_close (plugins);
 
-    zmq_setsockopt (
-            agent,
-            ZMQ_LINGER,
-            &no_linger,
-            sizeof (no_linger));
-    zmq_close (agent);
+    ctx = NULL;
 
-    zmq_setsockopt (
-            data_processor,
-            ZMQ_LINGER,
-            &no_linger,
-            sizeof (no_linger));
-    zmq_close (data_processor);
+    MHD_stop_daemon (daemon);
 
-    _ctx = NULL;
 }
 
 void
 argux_scheduler_main_quit ()
 {
-    void   *socket = zmq_socket (_ctx, ZMQ_REQ);
+    void   *socket = zmq_socket (ctx, ZMQ_REQ);
     int     ret = 0;
 
     argux_log_debug ("Terminating %s", PACKAGE_NAME);
@@ -345,4 +232,23 @@ argux_scheduler_main_quit ()
         argux_log_error ("Failed to send termination message");
     }
     zmq_close (socket);
+}
+
+
+int handle_request (void *cls, struct MHD_Connection *connection, 
+                    const char *url, 
+                    const char *method, const char *version, 
+                    const char *upload_data, 
+                    size_t *upload_data_size, void **con_cls)
+{
+  const char *page  = "<html><body>Hello, browser!</body></html>";
+  struct MHD_Response *response;
+  int ret;
+
+  response = MHD_create_response_from_buffer (strlen (page),
+                                            (void*) page, MHD_RESPMEM_PERSISTENT);
+  ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
+  MHD_destroy_response (response);
+
+  return ret;
 }

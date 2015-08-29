@@ -2,21 +2,18 @@ bin_PROGRAMS = arguxd
 
 arguxd_SOURCES = \
     argux.c \
-    acl.c acl.h \
-    role.c role.h \
     settings.c settings.h \
-    worker.c worker.h \
     scheduler.c scheduler.h \
-    command.c command.h \
+    worker.c worker.h \
     db.c db.h \
     fqdn.c fqdn.h \
-    util.c util.h \
-    command/connect.c command/connect.h
+    util.c util.h
 
 arguxd_LDADD = \
     $(top_builddir)/libargux/libargux-$(LIBARGUX_VERSION_API).la \
     $(PCRE_LIBS) \
     $(OPENSSL_LIBS) \
+    $(MICROHTTPD_LIBS) \
     $(ZMQ_LIBS) \
     $(PTHREAD_LIBS) -lrt
 
@@ -26,6 +23,7 @@ arguxd_LDFLAGS = \
 arguxd_CFLAGS = \
     $(PCRE_CFLAGS) \
     $(OPENSSL_CFLAGS) \
+    $(MICROHTTPD_CFLAGS) \
     $(ZMQ_CFLAGS) \
     $(PTHREAD_CFLAGS) \
     -DSYSCONFDIR=\"$(sysconfdir)\" \
@@ -38,5 +36,3 @@ arguxd_DEPENDENCIES = \
 
 AM_CPPFLAGS = \
     -I$(top_srcdir)
-
-AUTOMAKE_OPTIONS = subdir-options

@@ -40,7 +40,6 @@ libargux_include_HEADERS = \
 libargux_1_0_la_CFLAGS =               \
     $(PTHREAD_CFLAGS) \
     $(PCRE_CFLAGS) \
-    $(ZMQ_CFLAGS) \
     $(OPENSSL_CFLAGS) \
     -std=c99 \
     -DLIBARGUX_COMPILATION
@@ -54,7 +53,6 @@ libargux_1_0_la_LDFLAGS =              \
 libargux_1_0_la_LIBADD = \
     $(OPENSSL_LIBS) \
     $(PCRE_LIBS) \
-    $(ZMQ_LIBS) \
     $(PTHREAD_LIBS)
 
 AM_CPPFLAGS = \

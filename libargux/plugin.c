@@ -48,8 +48,6 @@
 #include <string.h>
 #include <errno.h>
 
-#include <zmq.h>
-
 #include "error.h"
 #include "memory.h"
 #include "plugin.h"

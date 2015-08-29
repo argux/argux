@@ -46,8 +46,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <zmq.h>
-
 #include "client.h"
 
 static void *_ctx = NULL;
@@ -66,40 +64,6 @@ client_connect_pass (
         const char *user,
         const char *password)
 {
-    char    msg[256];
-    char    cmd[256];
-
-    if (_ctx == NULL)
-    {
-        _ctx = zmq_ctx_new ();
-    }
-
-    if (_socket == NULL)
-    {
-        snprintf(cmd, 256, "connect %s %s", user, password);
-        bzero (_token, 256);
-        strncpy(_uri, uri, 200);
-        _socket = zmq_socket (_ctx, ZMQ_REQ);
-        zmq_connect (
-                _socket,
-                _uri);
-        zmq_send (
-                _socket,
-                cmd,
-                17,
-                0);
-
-        zmq_recv (
-                _socket,
-                msg,
-                255,
-                0);
-
-        printf("%s\n", msg);
-        sprintf(_token, "TOKEN_PLACEHOLDER");
-        return 0;
-    }
-
     return 1;
 }
 
@@ -107,9 +71,6 @@ void
 client_disconnect (
         void)
 {
-    zmq_disconnect(_socket, _uri);
-    zmq_close(_socket);
-    _socket = NULL;
 }
 
 int
@@ -130,47 +91,5 @@ client_send_cmd (
         void **resp,
         size_t *r_len)
 {
-    int l = 0;
-    zmq_msg_t command;
-    zmq_msg_t token;
-
-    if (_socket == NULL) {
-        return;
-    }
-
-    zmq_msg_init_data (
-            &token,
-            _token,
-            256,
-            NULL,
-            NULL);
-
-    zmq_msg_init_data (
-            &command,
-            cmd,
-            len,
-            NULL,
-            NULL);
-
-    zmq_msg_send (
-        &token,
-        _socket,
-        ZMQ_SNDMORE);
-
-    zmq_msg_send (
-        &command,
-        _socket,
-        0);
-
-    printf("RECV\n");
-    l = zmq_recv (
-        _socket,
-        response,
-        RESPONSE_LEN,
-        0);
-
-    *resp = response;
-    *r_len = l;
-
     return;
 }

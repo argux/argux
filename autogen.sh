@@ -2,6 +2,6 @@ libtoolize
 aclocal -I m4
 intltoolize --force
 autoheader
-automake --add-missing --copy --force-missing --gnu
 autoconf --force
+automake --add-missing --copy --force-missing --gnu
 ./configure --enable-maintainer-mode

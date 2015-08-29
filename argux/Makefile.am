@@ -17,7 +17,7 @@ argux_SOURCES = \
 argux_LDADD = \
     $(PCRE_LIBS) \
     $(OPENSSL_LIBS) \
-    $(ZMQ_LIBS) \
+    $(CURL_LIBS) \
     $(PTHREAD_LIBS) \
     -lncurses \
     -lrt
@@ -28,7 +28,7 @@ argux_LDFLAGS = \
 argux_CFLAGS = \
     $(PCRE_CFLAGS) \
     $(OPENSSL_CFLAGS) \
-    $(ZMQ_CFLAGS) \
+    $(CURL_CFLAGS) \
     $(PTHREAD_CFLAGS) \
     -DSYSCONFDIR=\"$(sysconfdir)\" \
     -DPLUGINDIR=\"$(libdir)/argux\" \

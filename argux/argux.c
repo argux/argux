@@ -64,8 +64,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <zmq.h>
-
 #include <openssl/sha.h>
 
 #include "interactive_menu.h"
