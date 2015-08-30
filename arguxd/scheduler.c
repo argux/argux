@@ -54,8 +54,6 @@
 
 #include <semaphore.h>
 
-#include <microhttpd.h>
-
 #include <zmq.h>
 
 #include <libargux/libargux.h>
@@ -68,26 +66,12 @@
 /** Define 10 Second interval */
 #define INTERVAL 10
 
-#define INVALID_REQUEST_PAGE "<html><head><title>shit</title></head></html>"
-
 void   *ctx = NULL;
 
 #define         BUFFER_LEN      1024
 char    buffer[BUFFER_LEN];
 
 #define PORT 8888
-
-void request_completed (void *cls,
-                        struct MHD_Connection *connection,
-                        void **con_cls,
-                        enum MHD_RequestTerminationCode toe);
-int handle_request (void *cls, struct MHD_Connection *connection, 
-                    const char *url, 
-                    const char *method, const char *version, 
-                    const char *upload_data, 
-                    size_t *upload_data_size, void **con_cls);
-
-static struct MHD_Response *invalid_request_response;
 
 
 void
@@ -99,31 +83,17 @@ argux_scheduler_main (int port, int n_workers)
     void   *plugins;
     void   *controller;
 
-    invalid_request_response = MHD_create_response_from_buffer (
-            strlen (INVALID_REQUEST_PAGE),
-            (void *) INVALID_REQUEST_PAGE,
-            MHD_RESPMEM_PERSISTENT);
-
-
     pthread_t *workers = NULL;
 
-    struct MHD_Daemon *daemon;
+    ArguxRestServer *server;
 
     if (ctx != NULL)
     {
         return;
     }
 
-    daemon = MHD_start_daemon (
-            MHD_USE_DEBUG | MHD_USE_SELECT_INTERNALLY,
-            PORT,
-            NULL, NULL, 
-            &handle_request, NULL,
-            MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 120,
-            MHD_OPTION_NOTIFY_COMPLETED, request_completed, NULL,
-            MHD_OPTION_END);
+    server = argux_rest_server_start ();
 
-    if (NULL == daemon) return;
 
     ctx = zmq_ctx_new();
 
@@ -233,7 +203,7 @@ argux_scheduler_main (int port, int n_workers)
 
     ctx = NULL;
 
-    MHD_stop_daemon (daemon);
+    argux_rest_server_stop(server);
 
 }
 
@@ -254,48 +224,3 @@ argux_scheduler_main_quit ()
     }
     zmq_close (socket);
 } 
- 
-void request_completed (void *cls,
-                        struct MHD_Connection *connection,
-                        void **con_cls,
-                        enum MHD_RequestTerminationCode toe)
-{
-    if (*con_cls!= NULL) {
-        argux_log_debug("COMPLETED (and cleaned up)");
-        free (*con_cls);
-    }
-}
-
-
-
-int handle_request (void *cls, struct MHD_Connection *connection, 
-                    const char *url, 
-                    const char *method, const char *version, 
-                    const char *upload_data, 
-                    size_t *upload_data_size, void **con_cls)
-{
-  const char *page  = "<html><body>Hello, browser!</body></html>";
-  struct MHD_Response *response;
-  int ret;
-
-  if (*con_cls == NULL) {
-    *con_cls = (void *)malloc(1);
-    return MHD_YES;
-  }
-
-  if (0 != strcmp(method, MHD_HTTP_METHOD_GET)) {
-    return MHD_queue_response (connection,
-            405,
-            invalid_request_response);
-
-    return MHD_NO;
-  }
-
-  
-  response = MHD_create_response_from_buffer (strlen (page),
-                                            (void*) page, MHD_RESPMEM_PERSISTENT);
-  ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
-  MHD_destroy_response (response);
-
-  return ret;
-}
