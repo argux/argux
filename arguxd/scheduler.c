@@ -92,7 +92,7 @@ argux_scheduler_main (int port, int n_workers)
         return;
     }
 
-    server = argux_rest_server_start ();
+    server = argux_rest_server_start (PORT);
 
 
     ctx = zmq_ctx_new();
