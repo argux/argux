@@ -78,7 +78,8 @@ struct _ArguxRestServer
 {
     struct MHD_Daemon *daemon;
 
-    void (*cb_get)(const char *url);
+    ArguxCreateCallback cb_create;
+    ArguxReadCallback   cb_read;
 };
 
 ArguxRestServer *
@@ -107,7 +108,8 @@ argux_rest_server_start(int port, int api_version)
 
     server->daemon = daemon;
 
-    server->cb_get = NULL;
+    server->cb_create = NULL;
+    server->cb_read   = NULL;
 
     return server;
 }
@@ -118,6 +120,26 @@ argux_rest_server_stop(ArguxRestServer *server)
     MHD_stop_daemon (server->daemon);
 
     free(server);
+}
+
+int
+argux_rest_server_set_create_cb (
+        ArguxRestServer *server,
+        ArguxCreateCallback cb_create)
+{
+    server->cb_create = cb_create;
+
+    return 0;
+}
+
+int
+argux_rest_server_set_read_cb (
+        ArguxRestServer *server,
+        ArguxReadCallback cb_read)
+{
+    server->cb_read = cb_read;
+
+    return 0;
 }
 
 static void
@@ -131,6 +153,13 @@ _http_request_completed (
         argux_log_debug("COMPLETED (and cleaned up)");
         free (*con_cls);
     }
+}
+
+int print_out_key (void *cls, enum MHD_ValueKind kind, 
+                   const char *key, const char *value)
+{
+  printf ("%s: %s\n", key, value);
+  return MHD_YES;
 }
 
 
@@ -163,33 +192,35 @@ _http_handle_request (
         return MHD_YES;
     }
 
-    if (0 != strcmp(method, MHD_HTTP_METHOD_PUT)) {
+    MHD_get_connection_values (connection, MHD_HEADER_KIND, &print_out_key, con_cls);
+
+    ArguxRestResponse *resp = NULL;
+
+    if (0 == strcmp(method, MHD_HTTP_METHOD_PUT)) {
+        return MHD_NO;
+    }
+
+    if (0 == strcmp(method, MHD_HTTP_METHOD_GET)) {
+
+        server->cb_read (url, &resp);
+
+        return MHD_NO;
+    }
+
+
+    if (0 == strcmp(method, MHD_HTTP_METHOD_POST)) {
         //return MHD_queue_response (connection,
         //        400,
         //        bad_request_response);
         return MHD_NO;
     }
 
-    if (0 != strcmp(method, MHD_HTTP_METHOD_GET)) {
-        return MHD_NO;
-    }
-
-
-    if (0 != strcmp(method, MHD_HTTP_METHOD_POST)) {
+    if (0 == strcmp(method, MHD_HTTP_METHOD_DELETE)) {
         //return MHD_queue_response (connection,
         //        400,
         //        bad_request_response);
         return MHD_NO;
     }
-
-    if (0 != strcmp(method, MHD_HTTP_METHOD_DELETE)) {
-        //return MHD_queue_response (connection,
-        //        400,
-        //        bad_request_response);
-        return MHD_NO;
-    }
-
-
   
     /*
       response = MHD_create_response_from_buffer (strlen (page),

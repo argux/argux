@@ -19,6 +19,7 @@ libargux_1_0_la_SOURCES = \
     host.c \
     metric.c \
     rest-server.c \
+    principal.c \
     libargux.c
 
 libargux_include_HEADERS = \
@@ -37,6 +38,7 @@ libargux_include_HEADERS = \
     host.h \
     metric.h \
     rest-server.h \
+    principal.h \
     libargux.h
 
 libargux_1_0_la_CFLAGS =               \

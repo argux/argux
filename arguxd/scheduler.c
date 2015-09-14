@@ -73,6 +73,12 @@ char    buffer[BUFFER_LEN];
 
 #define PORT 8888
 
+static int
+_read_object (const char *url, ArguxRestServer **resp) {
+    argux_log_debug("READ: %s...", url);
+    return 0;
+}
+
 
 void
 argux_scheduler_main (int port, int n_workers)
@@ -94,6 +100,7 @@ argux_scheduler_main (int port, int n_workers)
 
     server = argux_rest_server_start (PORT);
 
+    argux_rest_server_set_read_cb (server, _read_object);
 
     ctx = zmq_ctx_new();
 

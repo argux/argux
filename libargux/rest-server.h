@@ -26,12 +26,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+#ifndef __REST_SERVER_H__
+#define __REST_SERVER_H__
 
 typedef struct _ArguxRestServer ArguxRestServer;
+
+/** Response Object **/
+typedef struct _ArguxRestResponse ArguxRestResponse;
+
+struct _ArguxRestResponse
+{
+    int code;
+
+    char *body;
+    size_t body_len;
+};
+
+/** Callback Functions */
+
+/**
+ * \brief Callback for creating an object.
+ *
+ * Create object callback.
+ *
+ * \param url ..
+ * \param upload_data ..
+ * \param upload_data_size ..
+ * \param resp ..
+ */
+typedef int (*ArguxCreateCallback)(
+        const char *url,
+        const char *upload_data,
+        size_t upload_data_size,
+        ArguxRestResponse **resp);
+
+typedef int (*ArguxReadCallback)(
+        const char *url,
+        ArguxRestResponse **resp);
+
 
 ArguxRestServer *
 argux_rest_server_start();
 
 void
 argux_rest_server_stop(ArguxRestServer *);
+
+int
+argux_rest_server_set_create_cb (
+        ArguxRestServer *server,
+        ArguxCreateCallback cb_create);
+
+int
+argux_rest_server_set_read_cb (
+        ArguxRestServer *server,
+        ArguxReadCallback cb_read);
+
+#endif
