@@ -71,8 +71,6 @@ void   *ctx = NULL;
 #define         BUFFER_LEN      1024
 char    buffer[BUFFER_LEN];
 
-#define PORT 8888
-
 static int
 _read_object (const char *url, ArguxRestServer **resp) {
     argux_log_debug("READ: %s...", url);
@@ -98,7 +96,7 @@ argux_scheduler_main (int port, int n_workers)
         return;
     }
 
-    server = argux_rest_server_start (PORT);
+    server = argux_rest_server_start (port);
 
     argux_rest_server_set_read_cb (server, _read_object);
 

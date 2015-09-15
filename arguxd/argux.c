@@ -82,6 +82,9 @@
 #define MAX_PLUGINS 10
 #endif
 
+#define DEFAULT_PORT 8888
+
+
 static ArguxPlugin *_plugins[MAX_PLUGINS];
 static int n_plugins = 0;
 
@@ -242,7 +245,7 @@ main (int argc, char **argv)
 
     int     n_workers = 2;
 
-    int     port = 8888;
+    int     port = DEFAULT_PORT;
 
     char    plugin_path[1024];
 
@@ -393,7 +396,7 @@ main (int argc, char **argv)
 
     const char *http_port = argux_settings_get (settings, "http_port");
     if (http_port == NULL) {
-        port = 8888; 
+        port = DEFAULT_PORT;
     } else {
         port = atoi(http_port);
     }
