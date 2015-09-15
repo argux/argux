@@ -400,6 +400,7 @@ main (int argc, char **argv)
     } else {
         port = atoi(http_port);
     }
+    argux_log_info ("listening on port %d", port);
 
     const char *username = argux_settings_get (settings, "username");
 
