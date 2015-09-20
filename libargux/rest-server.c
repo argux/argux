@@ -47,14 +47,30 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 
+#include <openssl/sha.h>
 
 #include <microhttpd.h>
 
 #include "memory.h"
 #include "log.h"
+#include "principal.h"
 #include "rest-server.h"
+#include "session.h"
 
 #define API_VERSION 1
+
+#define COOKIE_NAME "Argux"
+
+#define DENIED "<html><head><title>libmicrohttpd demo</title></head><body>Access denied</body></html>"
+
+#define MY_OPAQUE_STR "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+typedef struct _Connection Connection;
+
+struct _Connection
+{
+    char cookie[256];
+};
 
 static void
 _http_request_completed (
@@ -80,6 +96,8 @@ struct _ArguxRestServer
 
     ArguxCreateCallback cb_create;
     ArguxReadCallback   cb_read;
+
+    ArguxLookupPrincipalCallback cb_lookup_principal;
 };
 
 ArguxRestServer *
@@ -110,6 +128,7 @@ argux_rest_server_start(int port, int api_version)
 
     server->cb_create = NULL;
     server->cb_read   = NULL;
+    server->cb_lookup_principal = NULL;
 
     return server;
 }
@@ -142,6 +161,16 @@ argux_rest_server_set_read_cb (
     return 0;
 }
 
+int
+argux_rest_server_set_lookup_principal_cb (
+        ArguxRestServer *server,
+        ArguxLookupPrincipalCallback cb_lookup)
+{
+    server->cb_lookup_principal = cb_lookup;
+
+    return 0;
+}
+
 static void
 _http_request_completed (
         void *cls,
@@ -158,8 +187,13 @@ _http_request_completed (
 int print_out_key (void *cls, enum MHD_ValueKind kind, 
                    const char *key, const char *value)
 {
-  printf ("%s: %s\n", key, value);
-  return MHD_YES;
+    Connection *con = cls;
+
+    if (0 == strcmp(COOKIE_NAME, key)) {
+        printf("%s:%s\n", key, value);    
+        strncpy(con->cookie, value, 256);
+    }
+    return MHD_YES;
 }
 
 
@@ -177,6 +211,15 @@ _http_handle_request (
 {
     struct MHD_Response *response;
     int ret;
+    char cookie[512];
+    char cookie_val[SHA256_DIGEST_LENGTH*2+1];
+    char *username;
+
+    const char *realm = "test@argux.github.io";
+
+    ArguxPrincipal *principal = NULL;
+
+    Connection *priv_con = *con_cls;
 
     /* Check if daemon is initialised */
     ArguxRestServer *server = cls;
@@ -188,11 +231,82 @@ _http_handle_request (
   
     /* Never respond to the first call */
     if (*con_cls == NULL) {
-        *con_cls = (void *)malloc(1);
+        *con_cls = (void *)malloc(sizeof (Connection));
+        ((Connection *)*con_cls)->cookie[0] = '\0';
         return MHD_YES;
     }
 
-    MHD_get_connection_values (connection, MHD_HEADER_KIND, &print_out_key, con_cls);
+    /* Lookup Principal */
+    if (server->cb_lookup_principal != NULL) {
+
+        /* Retrieve digest authentication username */
+        username = MHD_digest_auth_get_username(connection);
+        if (username == NULL)
+        {
+            response = MHD_create_response_from_buffer(strlen (DENIED),
+                             DENIED,
+                             MHD_RESPMEM_PERSISTENT);
+            ret = MHD_queue_auth_fail_response(connection, realm,
+                             MY_OPAQUE_STR,
+                             response,
+                             MHD_NO);
+            MHD_destroy_response(response);
+            return ret;
+        }
+
+        server->cb_lookup_principal(username, &principal);
+
+        /** If the user does not exist, respond */
+        if (principal == NULL) {
+
+            response = MHD_create_response_from_buffer(strlen (DENIED),
+                             DENIED,
+                             MHD_RESPMEM_PERSISTENT);
+            ret = MHD_queue_auth_fail_response(connection, realm,
+                             MY_OPAQUE_STR,
+                             response,
+                             MHD_NO);
+            MHD_destroy_response(response);
+            return ret;
+        }
+
+
+        ret = MHD_digest_auth_check (connection, realm,
+                username,
+                "1234",
+                300);
+        if ( (ret == MHD_INVALID_NONCE) ||
+             (ret == MHD_NO) )
+        {
+            response = MHD_create_response_from_buffer(strlen (DENIED),
+                             DENIED,
+                             MHD_RESPMEM_PERSISTENT);
+            if (NULL == response)
+                return MHD_NO;
+            ret = MHD_queue_auth_fail_response(connection, realm,
+                         MY_OPAQUE_STR,
+                         response,
+                         (ret == MHD_INVALID_NONCE) ? MHD_YES : MHD_NO);
+            MHD_destroy_response(response);
+            return ret;
+        }
+    }
+
+
+    MHD_get_connection_values (connection, MHD_COOKIE_KIND, &print_out_key, *con_cls);
+    if (strcmp(priv_con->cookie, "") == 0)
+    {
+        response = MHD_create_response_from_buffer(23, "<h1>Created-Cookie</h1>", MHD_RESPMEM_MUST_COPY);
+        argux_sessionid_generate(cookie_val);
+        ret = snprintf(cookie, 512, "%s=%s;HttpOnly", COOKIE_NAME, cookie_val);
+        MHD_add_response_header (response, "SET-COOKIE", cookie);
+    } else {
+        response = MHD_create_response_from_buffer(19, "<h1>HAZ-Cookie</h1>", MHD_RESPMEM_MUST_COPY);
+    }
+
+    return MHD_queue_response (connection,
+            200,
+            response);
 
     ArguxRestResponse *resp = NULL;
 

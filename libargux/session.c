@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Stephan Arts. All Rights Reserved.
+ * Copyright (c) 2015 Stephan Arts. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -27,29 +27,52 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __LIBARGUX_H__
-#define __LIBARGUX_H__
+#include <stdio.h>
 
-#define LIBARGUX_INSIDE_LIBARGUX_H
+#include <string.h>
 
-#include <time.h>
+#include <openssl/sha.h>
 
-#include <libargux/log.h>
-#include <libargux/error.h>
-#include <libargux/types.h>
-#include <libargux/slist.h>
-#include <libargux/itemtype.h>
-#include <libargux/item.h>
-#include <libargux/metric.h>
-#include <libargux/value.h>
-#include <libargux/assert.h>
-#include <libargux/memory.h>
-#include <libargux/plugin.h>
-#include <libargux/plugin-db.h>
+#include "session.h"
 
-#include <libargux/principal.h>
-#include <libargux/rest-server.h>
+#define DATA_LEN 128
 
-void
-        libargux_init (void);
-#endif                          /* __LIBARGUX_H__ */
+/**
+ * Warning:
+ * Critical security issue. Random Seed source must be configurable,
+ * this code (and the rest-server) MUST move to arguxd instead
+ * of this library.
+ *
+ * While the rest of the code that depends on this function to
+ * deliver a unique id is being written, we'll use a predictable
+ * seed. this integer.
+ *
+ * NOTE TO SELF:
+ * This is how security-problems get introduced.
+ */
+static int _session_idx = 0;
+
+int
+argux_sessionid_generate (char *buffer)
+{
+    int i;
+    char data[DATA_LEN];
+    unsigned char buf[SHA256_DIGEST_LENGTH];
+
+    SHA256_CTX ctx;
+    SHA256_Init (&ctx); 
+
+    //SHA256_Update (&ctx, data, DATA_LEN);
+    SHA256_Update (&ctx, &_session_idx, sizeof(int));
+
+    _session_idx++;
+
+    SHA256_Final (buf, &ctx);
+
+    for (i = 0; i < SHA256_DIGEST_LENGTH; ++i)
+    {
+        sprintf(&buffer[i*2], "%02x", (unsigned int)buf[i]);
+    }
+
+    return 0;
+}

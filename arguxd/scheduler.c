@@ -77,6 +77,14 @@ _read_object (const char *url, ArguxRestServer **resp) {
     return 0;
 }
 
+static int
+_lookup_principal(const char *username, ArguxPrincipal **principal) {
+    argux_log_debug("Principal not found: %s", username);
+
+    *principal = NULL;
+    return 1;
+}
+
 
 void
 argux_scheduler_main (int port, int n_workers)
@@ -99,6 +107,7 @@ argux_scheduler_main (int port, int n_workers)
     server = argux_rest_server_start (port);
 
     argux_rest_server_set_read_cb (server, _read_object);
+    argux_rest_server_set_lookup_principal_cb (server, _lookup_principal);
 
     ctx = zmq_ctx_new();
 

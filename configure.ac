@@ -258,8 +258,13 @@ docs/man/argux.conf.5
 docs/libargux/Makefile
 ])
 
-echo "----------------------------------------"
+echo "--------------------------------------------------"
 echo "$PACKAGE $VERSION"
 echo ""
 echo "The binary will be installed in $prefix/bin"
-echo "----------------------------------------"
+echo "--------------------------------------------------"
+echo ""
+echo "Warning:"
+echo "  THIS PACKAGE IS NOT READY FOR PRODUCTION USE!"
+echo "  Use for evaluation purposes only."
+echo "--------------------------------------------------"

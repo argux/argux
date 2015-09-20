@@ -64,6 +64,10 @@ typedef int (*ArguxReadCallback)(
         const char *url,
         ArguxRestResponse **resp);
 
+typedef int (*ArguxLookupPrincipalCallback)(
+        const char *username,
+        ArguxPrincipal **principal);
+
 
 ArguxRestServer *
 argux_rest_server_start();
@@ -80,5 +84,10 @@ int
 argux_rest_server_set_read_cb (
         ArguxRestServer *server,
         ArguxReadCallback cb_read);
+
+int
+argux_rest_server_set_lookup_principal_cb (
+        ArguxRestServer *server,
+        ArguxLookupPrincipalCallback cb_lookup);
 
 #endif

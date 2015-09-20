@@ -29,5 +29,8 @@
 
 struct _ArguxPrincipal
 {
-    void *a;
+    char *username;
+    char *password;
+
+    char *cert;
 };
