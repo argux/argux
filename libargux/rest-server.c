@@ -51,6 +51,7 @@
 
 #include <microhttpd.h>
 
+#include "types.h"
 #include "memory.h"
 #include "log.h"
 #include "principal.h"
@@ -214,6 +215,7 @@ _http_handle_request (
     char cookie[512];
     char cookie_val[SHA256_DIGEST_LENGTH*2+1];
     char *username;
+    char *password = NULL;
 
     const char *realm = "test@argux.github.io";
 
@@ -236,66 +238,68 @@ _http_handle_request (
         return MHD_YES;
     }
 
-    /* Lookup Principal */
-    if (server->cb_lookup_principal != NULL) {
-
-        /* Retrieve digest authentication username */
-        username = MHD_digest_auth_get_username(connection);
-        if (username == NULL)
-        {
-            response = MHD_create_response_from_buffer(strlen (DENIED),
-                             DENIED,
-                             MHD_RESPMEM_PERSISTENT);
-            ret = MHD_queue_auth_fail_response(connection, realm,
-                             MY_OPAQUE_STR,
-                             response,
-                             MHD_NO);
-            MHD_destroy_response(response);
-            return ret;
-        }
-
-        server->cb_lookup_principal(username, &principal);
-
-        /** If the user does not exist, respond */
-        if (principal == NULL) {
-
-            response = MHD_create_response_from_buffer(strlen (DENIED),
-                             DENIED,
-                             MHD_RESPMEM_PERSISTENT);
-            ret = MHD_queue_auth_fail_response(connection, realm,
-                             MY_OPAQUE_STR,
-                             response,
-                             MHD_NO);
-            MHD_destroy_response(response);
-            return ret;
-        }
-
-
-        ret = MHD_digest_auth_check (connection, realm,
-                username,
-                "1234",
-                300);
-        if ( (ret == MHD_INVALID_NONCE) ||
-             (ret == MHD_NO) )
-        {
-            response = MHD_create_response_from_buffer(strlen (DENIED),
-                             DENIED,
-                             MHD_RESPMEM_PERSISTENT);
-            if (NULL == response)
-                return MHD_NO;
-            ret = MHD_queue_auth_fail_response(connection, realm,
-                         MY_OPAQUE_STR,
-                         response,
-                         (ret == MHD_INVALID_NONCE) ? MHD_YES : MHD_NO);
-            MHD_destroy_response(response);
-            return ret;
-        }
-    }
-
-
     MHD_get_connection_values (connection, MHD_COOKIE_KIND, &print_out_key, *con_cls);
     if (strcmp(priv_con->cookie, "") == 0)
     {
+        /* Lookup Principal */
+        if (server->cb_lookup_principal != NULL) {
+
+            /**
+             * Retrieve basic authentication username and password,
+             *
+             * Digest authentication requires us to store the password in plain-text.
+             * This is why we won't use it.
+             */
+            username = MHD_basic_auth_get_username_password(connection, &password);
+            if (username == NULL)
+            {
+                if (password != NULL) {
+                    free (password);
+                }
+                response = MHD_create_response_from_buffer(strlen (DENIED),
+                                 DENIED,
+                                 MHD_RESPMEM_PERSISTENT);
+                ret = MHD_queue_basic_auth_fail_response(connection, realm,
+                                 response);
+                MHD_destroy_response(response);
+                return ret;
+            }
+
+            server->cb_lookup_principal(username, &principal);
+
+            /** If the user does not exist, respond */
+            if (principal == NULL) {
+                if (username != NULL) {
+                    free (username);
+                }
+                if (password != NULL) {
+                    free (password);
+                }
+
+                response = MHD_create_response_from_buffer(strlen (DENIED),
+                                 DENIED,
+                                 MHD_RESPMEM_PERSISTENT);
+                ret = MHD_queue_basic_auth_fail_response(connection, realm,
+                                 response);
+                MHD_destroy_response(response);
+                return ret;
+            }
+
+
+            if (argux_principal_validate_password(principal, password) == A_NO)
+            {
+                response = MHD_create_response_from_buffer(strlen (DENIED),
+                                 DENIED,
+                                 MHD_RESPMEM_PERSISTENT);
+                if (NULL == response)
+                    return MHD_NO;
+                ret = MHD_queue_basic_auth_fail_response(connection, realm,
+                             response);
+                MHD_destroy_response(response);
+                return ret;
+            }
+        }
+
         response = MHD_create_response_from_buffer(23, "<h1>Created-Cookie</h1>", MHD_RESPMEM_MUST_COPY);
         argux_sessionid_generate(cookie_val);
         ret = snprintf(cookie, 512, "%s=%s;HttpOnly", COOKIE_NAME, cookie_val);

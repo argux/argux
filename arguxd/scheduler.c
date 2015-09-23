@@ -81,7 +81,7 @@ static int
 _lookup_principal(const char *username, ArguxPrincipal **principal) {
     argux_log_debug("Principal not found: %s", username);
 
-    *principal = NULL;
+    *principal = argux_principal_new(username);
     return 1;
 }
 

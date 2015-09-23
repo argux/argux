@@ -27,10 +27,39 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <string.h>
+
+#include "types.h"
+#include "principal.h"
+
 struct _ArguxPrincipal
 {
     char *username;
-    char *password;
+    char *password_hash;
 
     char *cert;
 };
+
+ArguxPrincipal *
+argux_principal_new (
+    const char *username)
+{
+    ArguxPrincipal *principal = malloc(sizeof(ArguxPrincipal));
+    principal->username = malloc(strlen(username)+1);
+    strncpy(principal->username, username, strlen(username)+1);
+
+    return principal;
+}
+
+int
+argux_principal_validate_password (
+        const ArguxPrincipal *principal,
+        const char *password)
+{
+    if (strcmp(password, "12345") == 0)
+    {
+        return A_YES;
+    }
+
+    return A_NO;
+}

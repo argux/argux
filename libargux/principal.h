@@ -31,4 +31,9 @@
 
 typedef struct _ArguxPrincipal ArguxPrincipal;
 
+int
+argux_principal_validate_password (
+        const ArguxPrincipal *principal,
+        const char *password);
+
 #endif /* __PRINCIPAL_H__ */

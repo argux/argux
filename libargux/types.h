@@ -36,4 +36,7 @@
 
 #define FALSE 0
 #define TRUE  1
+
+#define A_YES 1
+#define A_NO  0
 #endif                          /* __ARGUX_TYPES_H__ */
