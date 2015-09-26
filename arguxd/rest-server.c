@@ -51,10 +51,8 @@
 
 #include <microhttpd.h>
 
-#include "types.h"
-#include "memory.h"
-#include "log.h"
-#include "principal.h"
+#include <libargux/libargux.h>
+
 #include "rest-server.h"
 #include "session.h"
 

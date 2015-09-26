@@ -18,8 +18,6 @@ libargux_1_0_la_SOURCES = \
     ns.c \
     host.c \
     metric.c \
-    rest-server.c \
-    session.c \
     principal.c \
     libargux.c
 
@@ -38,15 +36,12 @@ libargux_include_HEADERS = \
     ns.h \
     host.h \
     metric.h \
-    rest-server.h \
-    session.h \
     principal.h \
     libargux.h
 
 libargux_1_0_la_CFLAGS =               \
     $(PTHREAD_CFLAGS) \
     $(PCRE_CFLAGS) \
-    $(MICROHTTPD_CFLAGS) \
     $(OPENSSL_CFLAGS) \
     -std=c99 \
     -DLIBARGUX_COMPILATION
@@ -60,7 +55,6 @@ libargux_1_0_la_LDFLAGS =              \
 libargux_1_0_la_LIBADD = \
     $(OPENSSL_LIBS) \
     $(PCRE_LIBS) \
-    $(MICROHTTPD_LIBS) \
     $(PTHREAD_LIBS)
 
 AM_CPPFLAGS = \

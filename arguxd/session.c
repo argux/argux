@@ -31,6 +31,8 @@
 
 #include <string.h>
 
+#include <sys/time.h>
+
 #include <openssl/sha.h>
 
 #include "session.h"
@@ -59,10 +61,28 @@ argux_sessionid_generate (char *buffer)
     char data[DATA_LEN];
     unsigned char buf[SHA256_DIGEST_LENGTH];
 
+#if 1
+    struct timespec ts;
+#else
+    struct timeval t;
+#endif
+
     SHA256_CTX ctx;
     SHA256_Init (&ctx); 
 
-    //SHA256_Update (&ctx, data, DATA_LEN);
+    SHA256_Update (&ctx, data, DATA_LEN);
+
+    /* Add a few bits of entropy from the current time */
+#if __POSIX_VISIBLE >= 199309
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    SHA256_Update (&ctx, &ts.tv_sec, sizeof(time_t));
+    SHA256_Update (&ctx, &ts.tv_nsec, sizeof(long));
+#else
+    gettimeofday(&t, NULL);
+    SHA256_Update (&ctx, &t.tv_sec, sizeof(time_t));
+#endif
+
+    /* Add session-id (as n-th session generated) */
     SHA256_Update (&ctx, &_session_idx, sizeof(int));
 
     _session_idx++;

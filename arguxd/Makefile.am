@@ -7,6 +7,8 @@ arguxd_SOURCES = \
     worker.c worker.h \
     db.c db.h \
     fqdn.c fqdn.h \
+    session.c session.h \
+    rest-server.c rest-server.h \
     util.c util.h
 
 arguxd_LDADD = \

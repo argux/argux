@@ -48,7 +48,6 @@
 #include <libargux/plugin-db.h>
 
 #include <libargux/principal.h>
-#include <libargux/rest-server.h>
 
 void
         libargux_init (void);

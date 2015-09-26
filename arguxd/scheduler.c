@@ -62,6 +62,8 @@
 #include "settings.h"
 #include "db.h"
 #include "command.h"
+#include "session.h"
+#include "rest-server.h"
 
 /** Define 10 Second interval */
 #define INTERVAL 10
