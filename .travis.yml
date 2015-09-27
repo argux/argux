@@ -1,18 +1,19 @@
 language: c
-compiler:
-  - clang
-  - gcc
-
 sudo: false
 
 addons:
-  sources:
-    - chris-lea-zeromq
   apt:
-    - zeromq
-    - intltool
-    - libzmq3-dev
-    - libmicrohttpd-dev
+    sources:
+      - chris-lea-zeromq
+    packages:
+      - zeromq
+      - intltool
+      - libzmq3-dev
+      - libmicrohttpd-dev
+
+compiler:
+  - clang
+  - gcc
 
 before_install:
   - sh autogen.sh
