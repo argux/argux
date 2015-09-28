@@ -97,6 +97,14 @@ AC_CHECK_HEADER(stdio.h,
     ]
 )
 
+dnl *** Check for stdint.h
+dnl ***************************
+AC_CHECK_HEADER(stdint.h,
+    [ AC_DEFINE([HAVE_STDINT_H], [1],
+                [Define to 1 if you have the <stdint.h> header file])
+    ]
+)
+
 dnl *** Check for dirent.h
 dnl ***************************
 AC_CHECK_HEADER(dirent.h,
