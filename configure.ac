@@ -15,8 +15,7 @@ m4_define([argux_version_micro], [1])
 m4_define([argux_version_tag], [git]) # Leave empty for releases
 m4_define([argux_version], [argux_version_major().argux_version_minor().argux_version_micro()ifelse(argux_version_tag(), [], [], [-argux_version_tag()])])
 
-#m4_define([microhttpd_version], [0.9.30])
-m4_define([microhttpd_version], [0.4.6])
+m4_define([microhttpd_version], [0.9.30])
 
 dnl *******************************************
 dnl *** Debugging support for DEV snapshots ***
