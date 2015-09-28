@@ -87,6 +87,7 @@ argux_sessionid_generate (char *buffer)
 
     SHA256_Final (buf, &ctx);
 
+    /* Write digest to buffer */
     for (i = 0; i < SHA256_DIGEST_LENGTH; ++i)
     {
         sprintf(&buffer[i*2], "%02x", (unsigned int)buf[i]);
