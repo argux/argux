@@ -29,7 +29,20 @@
 #ifndef __ARGUX_SESSION_H__
 #define __ARGUX_SESSION_H__
 
+typedef struct _ArguxSession ArguxSession;
+
 int
-argux_sessionid_generate (char *buffer);
+argux_session_lookup_id (
+        const char *id,
+        ArguxSession **session);
+
+int
+argux_session_new (
+        ArguxPrincipal *principal,
+        ArguxSession **session);
+
+char *
+argux_session_get_id (
+        ArguxSession *session);
 
 #endif /* __ARGUX_SESSION_H__ */

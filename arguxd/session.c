@@ -20,10 +20,14 @@
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
  * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; * LOSS OF USE,DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE,DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+#include <stdlib.h>
 
 #include <stdio.h>
 
@@ -33,27 +37,29 @@
 
 #include <openssl/sha.h>
 
+#include <libargux/libargux.h>
+
 #include "session.h"
 
 #define DATA_LEN 128
 
+struct _ArguxSession
+{
+    ArguxPrincipal *principal;
+    char id[DATA_LEN*2+1];
+};
+
 /**
  * Warning:
- * Critical security issue. Random Seed source must be configurable,
- * this code (and the rest-server) MUST move to arguxd instead
- * of this library.
- *
- * While the rest of the code that depends on this function to
- * deliver a unique id is being written, we'll use a predictable
- * seed. this integer.
+ * Critical security issue. Random Seed source must be configurable.
  *
  * NOTE TO SELF:
  * This is how security-problems get introduced.
  */
 static int _session_idx = 0;
 
-int
-argux_sessionid_generate (char *buffer)
+static int
+argux_sessionid_generate (ArguxSession *session)
 {
     int i;
     char data[DATA_LEN];
@@ -80,18 +86,47 @@ argux_sessionid_generate (char *buffer)
     SHA256_Update (&ctx, &t.tv_sec, sizeof(time_t));
 #endif
 
-    /* Add session-id (as n-th session generated) */
-    SHA256_Update (&ctx, &_session_idx, sizeof(int));
 
     _session_idx++;
+
+    /* Add session-id (as n-th session generated) */
+    SHA256_Update (&ctx, &_session_idx, sizeof(int));
 
     SHA256_Final (buf, &ctx);
 
     /* Write digest to buffer */
     for (i = 0; i < SHA256_DIGEST_LENGTH; ++i)
     {
-        sprintf(&buffer[i*2], "%02x", (unsigned int)buf[i]);
+        sprintf(&session->id[i*2], "%02x", (unsigned int)buf[i]);
     }
 
     return 0;
+}
+
+int
+argux_session_lookup_id (
+        const char *id,
+        ArguxSession **session)
+{
+    return 0;
+}
+
+int
+argux_session_new (
+        ArguxPrincipal *principal,
+        ArguxSession **session)
+{
+    *session = (ArguxSession *)malloc(sizeof(ArguxSession));
+    (*session)->principal = principal;
+
+    argux_sessionid_generate (*session);
+
+    return 0;
+}
+
+char *
+argux_session_get_id (
+        ArguxSession *session)
+{
+    return session->id;
 }

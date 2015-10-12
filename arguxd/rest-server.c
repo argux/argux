@@ -66,8 +66,6 @@
 
 #define DENIED "<html><head><title>libmicrohttpd demo</title></head><body>Access denied</body></html>"
 
-#define MY_OPAQUE_STR "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-
 typedef struct _Connection Connection;
 
 struct _Connection
@@ -187,8 +185,11 @@ _http_request_completed (
     }
 }
 
-int print_out_key (void *cls, enum MHD_ValueKind kind, 
-                   const char *key, const char *value)
+int print_out_key (
+        void *cls,
+        enum MHD_ValueKind kind,
+        const char *key,
+        const char *value)
 {
     Connection *con = cls;
 
@@ -215,13 +216,13 @@ _http_handle_request (
     struct MHD_Response *response;
     int ret;
     char cookie[512];
-    char cookie_val[SHA256_DIGEST_LENGTH*2+1];
     char *username;
     char *password = NULL;
 
     const char *realm = "test@argux.github.io";
 
     ArguxPrincipal *principal = NULL;
+    ArguxSession *session = NULL;
 
     Connection *priv_con = *con_cls;
 
@@ -302,17 +303,14 @@ _http_handle_request (
             }
         }
 
+        argux_session_new (principal, &session);
+
         response = MHD_create_response_from_buffer(23, "<h1>Created-Cookie</h1>", MHD_RESPMEM_MUST_COPY);
-        argux_sessionid_generate(cookie_val);
-        ret = snprintf(cookie, 512, "%s=%s;HttpOnly", COOKIE_NAME, cookie_val);
+        ret = snprintf(cookie, 512, "%s=%s;HttpOnly", COOKIE_NAME, argux_session_get_id (session));
         MHD_add_response_header (response, "SET-COOKIE", cookie);
     } else {
         response = MHD_create_response_from_buffer(19, "<h1>HAZ-Cookie</h1>", MHD_RESPMEM_MUST_COPY);
     }
-
-    return MHD_queue_response (connection,
-            200,
-            response);
 
     ArguxRestResponse *resp = NULL;
 
@@ -322,9 +320,19 @@ _http_handle_request (
 
     if (0 == strcmp(method, MHD_HTTP_METHOD_GET)) {
 
-        server->cb_read (url, &resp);
+        if (server->cb_read != NULL) {
+            server->cb_read (url, &resp);
+        }
 
-        return MHD_NO;
+        response = MHD_create_response_from_buffer(
+                resp->body_len,
+                resp->body,
+                MHD_RESPMEM_MUST_COPY);
+        MHD_add_response_header (response, "Content-Type", "application/xml");
+
+        return MHD_queue_response (connection,
+                resp->code,
+                response);
     }
 
 
@@ -348,6 +356,10 @@ _http_handle_request (
       ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
       MHD_destroy_response (response);
     */
+
+    return MHD_queue_response (connection,
+            200,
+            response);
 
   return ret;
 }

@@ -74,8 +74,15 @@ void   *ctx = NULL;
 char    buffer[BUFFER_LEN];
 
 static int
-_read_object (const char *url, ArguxRestServer **resp) {
+_read_object (const char *url, ArguxRestResponse **resp) {
     argux_log_debug("READ: %s...", url);
+
+    *resp = argux_new(sizeof(ArguxRestResponse), 1);
+    (*resp)->body = (char *)malloc(1024);
+    strcpy((*resp)->body, "<?xml version=\"1.0\" encoding=\"utf-8\"?><argux xmlns:host=\"http://argux.github.io/host\"><host:a>aa</host:a></argux>");
+    (*resp)->body_len = strlen((*resp)->body);
+    (*resp)->code = 200;
+
     return 0;
 }
 

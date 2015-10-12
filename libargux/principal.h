@@ -36,4 +36,7 @@ argux_principal_validate_password (
         const ArguxPrincipal *principal,
         const char *password);
 
+ArguxPrincipal *
+argux_principal_new (const char *username);
+
 #endif /* __PRINCIPAL_H__ */
